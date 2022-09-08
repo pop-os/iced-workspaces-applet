@@ -1,0 +1,21 @@
+Source: iced-workspaces-applet
+Section: admin
+Priority: optional
+Maintainer: Ashley Wulber <ashley@system76.com>
+Build-Depends:
+  debhelper (>= 11),
+  debhelper-compat (= 11),
+  rustc (>=1.57),
+  cargo,
+  meson,
+  pkg-config,
+  desktop-file-utils,
+Standards-Version: 4.3.0
+Homepage: https://github.com/pop-os/iced-workspaces-applet
+
+Package: iced-workspaces-applet
+Architecture: amd64 arm64
+Depends:
+  ${misc:Depends},
+  ${shlibs:Depends}
+Description: Iced Workspaces Applet
