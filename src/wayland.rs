@@ -160,7 +160,8 @@ impl State {
             .iter()
             .filter_map(|g| {
                 dbg!(&g.output, &self.expected_output);
-                if g.output == self.expected_output {
+                // TODO remove none check when workspace groups receive output event
+                if g.output.is_none() || g.output == self.expected_output {
                     Some(g.workspaces.iter().map(|w| {
                         (
                             w.name.clone(),
