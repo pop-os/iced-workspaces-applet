@@ -1,6 +1,4 @@
-use crate::{
-    wayland_source::WaylandSource, wayland_subscription::WorkspacesUpdate
-};
+use crate::{wayland_source::WaylandSource, wayland_subscription::WorkspacesUpdate};
 use calloop::channel::*;
 use cosmic_panel_config::CosmicPanelOuput;
 use cosmic_protocols::workspace::v1::client::{
@@ -8,6 +6,7 @@ use cosmic_protocols::workspace::v1::client::{
     zcosmic_workspace_handle_v1::{self, ZcosmicWorkspaceHandleV1},
     zcosmic_workspace_manager_v1::{self, ZcosmicWorkspaceManagerV1},
 };
+use futures::{channel::mpsc, executor::block_on, SinkExt};
 use std::{env, os::unix::net::UnixStream, path::PathBuf, time::Duration};
 use wayland_client::{
     event_created_child,
@@ -18,7 +17,6 @@ use wayland_client::{
     ConnectError,
 };
 use wayland_client::{Connection, Dispatch, QueueHandle};
-use futures::{channel::mpsc, SinkExt, executor::block_on};
 
 #[derive(Debug, Clone)]
 pub enum WorkspaceEvent {

@@ -1,8 +1,7 @@
+use crate::wayland::{self, WorkspaceEvent, WorkspaceList};
 use calloop::channel::SyncSender;
 use futures::{channel::mpsc, StreamExt};
 use std::hash::Hash;
-use crate::wayland::{WorkspaceEvent, WorkspaceList, self};
-
 
 #[derive(Debug, Clone)]
 pub enum WorkspacesUpdate {
@@ -33,7 +32,10 @@ async fn _workspaces<I: Copy>(id: I, state: State) -> (Option<(I, WorkspacesUpda
         }
         State::Waiting(mut t) => {
             if let Some(w) = t.workspaces().await {
-                (Some((id, WorkspacesUpdate::Workspaces(w))), State::Waiting(t))
+                (
+                    Some((id, WorkspacesUpdate::Workspaces(w))),
+                    State::Waiting(t),
+                )
             } else {
                 (Some((id, WorkspacesUpdate::Errored)), State::Error)
             }
@@ -50,7 +52,7 @@ pub enum State {
 
 pub struct WorkspacesWatcher {
     rx: mpsc::Receiver<WorkspaceList>,
-    tx: SyncSender<WorkspaceEvent>
+    tx: SyncSender<WorkspaceEvent>,
 }
 
 impl WorkspacesWatcher {
