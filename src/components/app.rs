@@ -5,7 +5,7 @@ use calloop::channel::SyncSender;
 use cosmic_panel_config::PanelAnchor;
 use cosmic_protocols::workspace::v1::client::zcosmic_workspace_handle_v1;
 use iced::theme::palette::Extended;
-use iced::theme::Palette;
+use iced::theme::{Palette, self};
 use iced::widget::{button, column, container, row, text};
 use iced::{
     executor, window, Alignment, Application, Command, Element, Length, Settings, Subscription,
@@ -119,8 +119,8 @@ impl Application for IcedWorkspacesApplet {
                     .on_press(Message::WorkspacePressed(w.0.clone()));
                 match w.1 {
                     Some(zcosmic_workspace_handle_v1::State::Active) => Some(btn.into()),
-                    Some(zcosmic_workspace_handle_v1::State::Urgent) => Some(btn.into()),
-                    None => Some(btn.into()),
+                    Some(zcosmic_workspace_handle_v1::State::Urgent) => Some(btn.style(theme::Button::Destructive).into()),
+                    None => Some(btn.style(theme::Button::Secondary).into()),
                     _ => None,
                 }
             })
