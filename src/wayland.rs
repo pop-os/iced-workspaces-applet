@@ -43,13 +43,15 @@ pub fn spawn_workspaces(tx: mpsc::Sender<WorkspaceList>) -> SyncSender<Workspace
         std::thread::spawn(move || {
             let output = std::env::var("COSMIC_PANEL_OUTPUT")
                 .ok()
-                .and_then(|size| match size.parse::<CosmicPanelOuput>() {
-                    Ok(CosmicPanelOuput::Name(n)) => Some(n),
-                    // TODO handle Active & panic if the space is still configured for All instead of being assigned a named output
-                    _ => Some("".to_string()),
+                .and_then(|size| {
+                    match size {
+                        s if s.len() >= 6 && &s[..5] == "Name(" && s.chars().last() == Some(')') => {
+                            Some(s[5..s.len() - 1].to_string())
+                        }
+                        _ => Some("".to_string())
+                    }
                 })
                 .unwrap_or_default();
-
             let mut event_loop = calloop::EventLoop::<State>::try_new().unwrap();
             let loop_handle = event_loop.handle();
             let event_queue = conn.new_event_queue::<State>();
@@ -157,6 +159,7 @@ impl State {
         self.workspace_groups
             .iter()
             .filter_map(|g| {
+                dbg!(&g.output, &self.expected_output);
                 if g.output == self.expected_output {
                     Some(g.workspaces.iter().map(|w| {
                         (
@@ -221,7 +224,7 @@ impl Dispatch<wl_registry::WlRegistry, ()> for State {
                     state.workspace_manager = Some(workspace_manager);
                 }
                 "wl_output" => {
-                    registry.bind::<WlOutput, _, _>(name, 1, qh, ());
+                    registry.bind::<WlOutput, _, _>(name, 4, qh, ());
                 }
                 _ => {}
             }
@@ -283,6 +286,7 @@ impl Dispatch<ZcosmicWorkspaceGroupHandleV1, ()> for State {
     ) {
         match event {
             zcosmic_workspace_group_handle_v1::Event::OutputEnter { output } => {
+                dbg!(&output);
                 if let Some(group) = state
                     .workspace_groups
                     .iter_mut()
@@ -292,6 +296,7 @@ impl Dispatch<ZcosmicWorkspaceGroupHandleV1, ()> for State {
                 }
             }
             zcosmic_workspace_group_handle_v1::Event::OutputLeave { output } => {
+                dbg!(&output);
                 if let Some(group) = state.workspace_groups.iter_mut().find(|g| {
                     &g.workspace_group_handle == group && g.output.as_ref() == Some(&output)
                 }) {
@@ -409,6 +414,8 @@ impl Dispatch<WlOutput, ()> for State {
         match e {
             wl_output::Event::Name { name } if name == state.configured_output => {
                 state.expected_output.replace(o.clone());
+                // Necessary bc often the output is handled after the workspaces
+                let _ = block_on(state.tx.send(state.workspace_list()));
             }
             _ => {} // ignored
         }

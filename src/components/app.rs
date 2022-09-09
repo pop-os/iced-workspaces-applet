@@ -4,11 +4,12 @@ use adw_user_colors_lib::notify::*;
 use calloop::channel::SyncSender;
 use cosmic_panel_config::PanelAnchor;
 use cosmic_protocols::workspace::v1::client::zcosmic_workspace_handle_v1;
+use iced::mouse::{self, ScrollDelta};
 use iced::theme::palette::Extended;
 use iced::theme::{self, Palette};
 use iced::widget::{button, column, container, row, text};
 use iced::{
-    executor, window, Application, Command, Element, Length, Settings, Subscription, Theme,
+    executor, window, Application, Command, Element, Length, Settings, Subscription, Theme, subscription, Event::Mouse
 };
 
 use crate::config;
@@ -39,6 +40,8 @@ enum Message {
     PaletteChanged(Palette),
     WorkspaceUpdate(WorkspacesUpdate),
     WorkspacePressed(String),
+    WheelScrolled(ScrollDelta),
+    Errored,
 }
 
 impl Application for IcedWorkspacesApplet {
@@ -105,6 +108,17 @@ impl Application for IcedWorkspacesApplet {
                     let _ = tx.try_send(WorkspaceEvent::Activate(name));
                 }
             }
+            Message::WheelScrolled(delta) => {
+                let delta = match delta {
+                    ScrollDelta::Lines { x, y } => x + y,
+                    ScrollDelta::Pixels { x, y } => x + y,
+                } as f64;
+                if let Some(tx) = self.workspace_tx.as_mut() {
+                    let _ = tx.try_send(WorkspaceEvent::Scroll(delta));
+                }
+            }
+            ,
+            Message::Errored => {},
         }
         Command::none()
     }
@@ -147,9 +161,15 @@ impl Application for IcedWorkspacesApplet {
             vec![
                 theme(0).map(|(_, theme_update)| match theme_update {
                     ThemeUpdate::Palette(palette) => Message::PaletteChanged(palette),
-                    ThemeUpdate::Errored => todo!(),
+                    ThemeUpdate::Errored => Message::Errored,
                 }),
                 workspaces(0).map(|(_, msg)| Message::WorkspaceUpdate(msg)),
+                subscription::events_with(|e, _| match e {
+                    Mouse(mouse::Event::WheelScrolled { delta }) => {
+                        Some(Message::WheelScrolled(delta))
+                    }
+                    _ => None
+                })
             ]
             .into_iter(),
         )
