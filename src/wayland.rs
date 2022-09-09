@@ -1,4 +1,4 @@
-use crate::{wayland_source::WaylandSource, wayland_subscription::WorkspacesUpdate};
+use crate::{wayland_source::WaylandSource};
 use calloop::channel::*;
 use cosmic_panel_config::CosmicPanelOuput;
 use cosmic_protocols::workspace::v1::client::{
