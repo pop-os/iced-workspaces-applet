@@ -19,7 +19,9 @@ use crate::wayland_subscription::{workspaces, WorkspacesUpdate};
 pub fn run() -> iced::Result {
     let mut settings = Settings::default();
     settings.window.decorations = false;
+    settings.window.size = (30, 30);
     IcedWorkspacesApplet::run(settings)
+
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
