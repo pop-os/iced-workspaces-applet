@@ -4,12 +4,14 @@ use adw_user_colors_lib::notify::*;
 use calloop::channel::SyncSender;
 use cosmic_panel_config::PanelAnchor;
 use cosmic_protocols::workspace::v1::client::zcosmic_workspace_handle_v1;
+use iced::alignment::{Horizontal, Vertical};
 use iced::mouse::{self, ScrollDelta};
 use iced::theme::palette::Extended;
 use iced::theme::{self, Palette};
 use iced::widget::{button, column, container, row, text};
 use iced::{
-    executor, window, Application, Command, Element, Length, Settings, Subscription, Theme, subscription, Event::Mouse
+    executor, subscription, window, Application, Command, Element, Event::Mouse, Length, Settings,
+    Subscription, Theme,
 };
 
 use crate::config;
@@ -19,9 +21,8 @@ use crate::wayland_subscription::{workspaces, WorkspacesUpdate};
 pub fn run() -> iced::Result {
     let mut settings = Settings::default();
     settings.window.decorations = false;
-    settings.window.size = (30, 30);
-    IcedWorkspacesApplet::run(settings)
 
+    IcedWorkspacesApplet::run(settings)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -85,13 +86,16 @@ impl Application for IcedWorkspacesApplet {
             }
             Message::WorkspaceUpdate(msg) => match msg {
                 WorkspacesUpdate::Workspaces(mut list) => {
+                    list.retain(|w| {
+                        !matches!(w.1, Some(zcosmic_workspace_handle_v1::State::Hidden))
+                    });
                     list.sort_by(|a, b| match a.0.len().cmp(&b.0.len()) {
                         Ordering::Equal => a.0.cmp(&b.0),
                         Ordering::Less => Ordering::Less,
                         Ordering::Greater => Ordering::Greater,
                     });
                     self.workspaces = list;
-                    let unit = 24;
+                    let unit = 28;
                     let (w, h) = match self.layout {
                         Layout::Row => (unit * self.workspaces.len() as u32, unit),
                         Layout::Column => (unit, unit * self.workspaces.len() as u32),
@@ -119,8 +123,7 @@ impl Application for IcedWorkspacesApplet {
                     let _ = tx.try_send(WorkspaceEvent::Scroll(delta));
                 }
             }
-            ,
-            Message::Errored => {},
+            Message::Errored => {}
         }
         Command::none()
     }
@@ -130,10 +133,17 @@ impl Application for IcedWorkspacesApplet {
             .workspaces
             .iter()
             .filter_map(|w| {
-                let btn = button(text(w.0.clone()))
-                    .width(Length::Fill)
-                    .height(Length::Fill)
-                    .on_press(Message::WorkspacePressed(w.0.clone()));
+                let btn = button(
+                    text(w.0.clone())
+                        .horizontal_alignment(Horizontal::Center)
+                        .vertical_alignment(Vertical::Center)
+                        .width(Length::Fill)
+                        .height(Length::Fill),
+                )
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .on_press(Message::WorkspacePressed(w.0.clone()))
+                .padding(0);
                 match w.1 {
                     Some(zcosmic_workspace_handle_v1::State::Active) => Some(btn.into()),
                     Some(zcosmic_workspace_handle_v1::State::Urgent) => {
@@ -170,8 +180,8 @@ impl Application for IcedWorkspacesApplet {
                     Mouse(mouse::Event::WheelScrolled { delta }) => {
                         Some(Message::WheelScrolled(delta))
                     }
-                    _ => None
-                })
+                    _ => None,
+                }),
             ]
             .into_iter(),
         )

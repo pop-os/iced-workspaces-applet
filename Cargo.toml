@@ -5,10 +5,14 @@ authors = ["Ashley Wulber <ashley@system76.com>"]
 edition = "2021"
 
 [dependencies]
-iced = { git = "https://github.com/wash2/iced", features = ["wgpu", "default_system_font", "palette", "svg", "image", "tokio"], branch = "custom-theme" }
-iced_native = { git = "https://github.com/wash2/iced", branch = "custom-theme"  }
-iced_style = { git = "https://github.com/wash2/iced", branch = "custom-theme"  }
+iced = { git = "https://github.com/wash2/iced", features = ["wgpu", "default_system_font", "palette", "svg", "image", "tokio"], branch = "fix_window_resize" }
+iced_native = { git = "https://github.com/wash2/iced", branch = "fix_window_resize"  }
+iced_style = { git = "https://github.com/wash2/iced", branch = "fix_window_resize"  }
 adw-user-colors-lib = { git = "https://github.com/pop-os/user-color-editor" }
+# iced = { path = "../iced", features = ["wgpu", "default_system_font", "palette", "svg", "image", "tokio"]}
+# iced_native = { path = "../iced/native" }
+# iced_style = { path = "../iced/style" }
+# adw-user-colors-lib = { path = "../user-color-editor/adw-user-colors-lib" }
 cosmic-panel-config = { git = "https://github.com/pop-os/cosmic-panel" }
 cosmic-protocols = { git = "https://github.com/pop-os/cosmic-protocols", default-features = false, features = ["client"] }
 wayland-backend = { git = "https://github.com/Smithay/wayland-rs", version = "0.1.0-beta.9"}

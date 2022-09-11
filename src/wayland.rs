@@ -1,4 +1,4 @@
-use crate::{wayland_source::WaylandSource};
+use crate::wayland_source::WaylandSource;
 use calloop::channel::*;
 use cosmic_protocols::workspace::v1::client::{
     zcosmic_workspace_group_handle_v1::{self, ZcosmicWorkspaceGroupHandleV1},
@@ -42,13 +42,11 @@ pub fn spawn_workspaces(tx: mpsc::Sender<WorkspaceList>) -> SyncSender<Workspace
         std::thread::spawn(move || {
             let output = std::env::var("COSMIC_PANEL_OUTPUT")
                 .ok()
-                .and_then(|size| {
-                    match size {
-                        s if s.len() >= 6 && &s[..5] == "Name(" && s.chars().last() == Some(')') => {
-                            Some(s[5..s.len() - 1].to_string())
-                        }
-                        _ => Some("".to_string())
+                .and_then(|size| match size {
+                    s if s.len() >= 6 && &s[..5] == "Name(" && s.chars().last() == Some(')') => {
+                        Some(s[5..s.len() - 1].to_string())
                     }
+                    _ => Some("".to_string()),
                 })
                 .unwrap_or_default();
             let mut event_loop = calloop::EventLoop::<State>::try_new().unwrap();

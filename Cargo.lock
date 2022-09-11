@@ -33,7 +33,7 @@ checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 [[package]]
 name = "adw-user-colors-lib"
 version = "0.1.0"
-source = "git+https://github.com/pop-os/user-color-editor#e36b0fc3c1e9065446a000cb5b8e1095fbbbea24"
+source = "git+https://github.com/pop-os/user-color-editor#f71f16f8fb4957b46e3203afcaf095c330093c98"
 dependencies = [
  "anyhow",
  "csscolorparser",
@@ -1309,7 +1309,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.4.2"
-source = "git+https://github.com/wash2/iced?branch=custom-theme#4ff019b1e8e520d27cf3e6aa635e43a47771a46a"
+source = "git+https://github.com/wash2/iced?branch=fix_window_resize#0d67b0cef220ef5c42fc2e788601b690e8690a9a"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -1348,7 +1348,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.5.0"
-source = "git+https://github.com/wash2/iced?branch=custom-theme#4ff019b1e8e520d27cf3e6aa635e43a47771a46a"
+source = "git+https://github.com/wash2/iced?branch=fix_window_resize#0d67b0cef220ef5c42fc2e788601b690e8690a9a"
 dependencies = [
  "bitflags",
  "palette",
@@ -1358,7 +1358,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.4.1"
-source = "git+https://github.com/wash2/iced?branch=custom-theme#4ff019b1e8e520d27cf3e6aa635e43a47771a46a"
+source = "git+https://github.com/wash2/iced?branch=fix_window_resize#0d67b0cef220ef5c42fc2e788601b690e8690a9a"
 dependencies = [
  "futures",
  "log",
@@ -1370,7 +1370,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.3.1"
-source = "git+https://github.com/wash2/iced?branch=custom-theme#4ff019b1e8e520d27cf3e6aa635e43a47771a46a"
+source = "git+https://github.com/wash2/iced?branch=fix_window_resize#0d67b0cef220ef5c42fc2e788601b690e8690a9a"
 dependencies = [
  "bytemuck",
  "font-kit",
@@ -1384,7 +1384,7 @@ dependencies = [
 [[package]]
 name = "iced_native"
 version = "0.5.1"
-source = "git+https://github.com/wash2/iced?branch=custom-theme#4ff019b1e8e520d27cf3e6aa635e43a47771a46a"
+source = "git+https://github.com/wash2/iced?branch=fix_window_resize#0d67b0cef220ef5c42fc2e788601b690e8690a9a"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -1397,7 +1397,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.4.0"
-source = "git+https://github.com/wash2/iced?branch=custom-theme#4ff019b1e8e520d27cf3e6aa635e43a47771a46a"
+source = "git+https://github.com/wash2/iced?branch=fix_window_resize#0d67b0cef220ef5c42fc2e788601b690e8690a9a"
 dependencies = [
  "iced_core",
  "lazy_static",
@@ -1407,7 +1407,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.5.1"
-source = "git+https://github.com/wash2/iced?branch=custom-theme#4ff019b1e8e520d27cf3e6aa635e43a47771a46a"
+source = "git+https://github.com/wash2/iced?branch=fix_window_resize#0d67b0cef220ef5c42fc2e788601b690e8690a9a"
 dependencies = [
  "bitflags",
  "bytemuck",
@@ -1430,7 +1430,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.4.0"
-source = "git+https://github.com/wash2/iced?branch=custom-theme#4ff019b1e8e520d27cf3e6aa635e43a47771a46a"
+source = "git+https://github.com/wash2/iced?branch=fix_window_resize#0d67b0cef220ef5c42fc2e788601b690e8690a9a"
 dependencies = [
  "iced_futures",
  "iced_graphics",
@@ -1498,9 +1498,9 @@ dependencies = [
 
 [[package]]
 name = "inplace_it"
-version = "0.3.4"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67f0347836f3f6362c1e7efdadde2b1c4b4556d211310b70631bae7eb692070b"
+checksum = "e567468c50f3d4bc7397702e09b380139f9b9288b4e909b070571007f8b5bf78"
 
 [[package]]
 name = "instant"
@@ -2329,9 +2329,9 @@ checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
 name = "quick-xml"
-version = "0.23.0"
+version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9279fbdacaad3baf559d8cabe0acc3d06e30ea14931af31af79578ac0946decc"
+checksum = "11bafc859c6815fbaffbbbf4229ecb767ac913fecb27f9ad4343662e9ef099ea"
 dependencies = [
  "memchr",
 ]
