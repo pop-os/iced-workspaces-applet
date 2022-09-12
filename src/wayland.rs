@@ -6,7 +6,7 @@ use cosmic_protocols::workspace::v1::client::{
     zcosmic_workspace_manager_v1::{self, ZcosmicWorkspaceManagerV1},
 };
 use futures::{channel::mpsc, executor::block_on, SinkExt};
-use std::{env, os::{unix::net::UnixStream, linux::raw::stat}, path::PathBuf, time::Duration};
+use std::{env, os::unix::net::UnixStream, path::PathBuf, time::Duration};
 use wayland_client::{
     event_created_child,
     protocol::{
@@ -221,23 +221,23 @@ impl Dispatch<wl_registry::WlRegistry, ()> for State {
             match &interface[..] {
                 "zcosmic_workspace_manager_v1" => {
                     if let Some(outputs_to_handle) = state.outputs_to_handle.as_ref() {
-                        if outputs_to_handle.is_empty() { 
+                        if outputs_to_handle.is_empty() {
                             let workspace_manager =
-                            registry.bind::<ZcosmicWorkspaceManagerV1, _, _>(name, 1, qh, ());
+                                registry.bind::<ZcosmicWorkspaceManagerV1, _, _>(name, 1, qh, ());
                             state.workspace_manager = Some(workspace_manager);
-                            return; 
+                            return;
                         }
                     }
                     // will be handled when outputs are done...
-                    state.wm_name.replace((name, registry.clone())); 
-
-
+                    state.wm_name.replace((name, registry.clone()));
                 }
                 "wl_output" => {
                     let _output = registry.bind::<WlOutput, _, _>(name, 4, qh, ());
                     match state.outputs_to_handle.as_mut() {
                         Some(outputs_to_handle) => outputs_to_handle.push(_output),
-                        None => {state.outputs_to_handle.replace(vec![_output]);},
+                        None => {
+                            state.outputs_to_handle.replace(vec![_output]);
+                        }
                     };
                 }
                 _ => {}
@@ -300,7 +300,6 @@ impl Dispatch<ZcosmicWorkspaceGroupHandleV1, ()> for State {
     ) {
         match event {
             zcosmic_workspace_group_handle_v1::Event::OutputEnter { output } => {
-                dbg!(&output);
                 if let Some(group) = state
                     .workspace_groups
                     .iter_mut()
@@ -310,7 +309,6 @@ impl Dispatch<ZcosmicWorkspaceGroupHandleV1, ()> for State {
                 }
             }
             zcosmic_workspace_group_handle_v1::Event::OutputLeave { output } => {
-                dbg!(&output);
                 if let Some(group) = state.workspace_groups.iter_mut().find(|g| {
                     &g.workspace_group_handle == group && g.output.as_ref() == Some(&output)
                 }) {
@@ -431,14 +429,13 @@ impl Dispatch<WlOutput, ()> for State {
                 // Necessary bc often the output is handled after the workspaces
                 let _ = block_on(state.tx.send(state.workspace_list()));
             }
-            wl_output::Event::Done => {let outputs_to_handle = state.outputs_to_handle.as_mut().unwrap();
-                outputs_to_handle.retain(|o_to_handle| {
-                    o != o_to_handle
-                });
+            wl_output::Event::Done => {
+                let outputs_to_handle = state.outputs_to_handle.as_mut().unwrap();
+                outputs_to_handle.retain(|o_to_handle| o != o_to_handle);
                 if outputs_to_handle.is_empty() {
                     if let Some((wm_name, registry)) = state.wm_name.as_ref() {
                         let workspace_manager =
-                        registry.bind::<ZcosmicWorkspaceManagerV1, _, _>(*wm_name, 1, qh, ());
+                            registry.bind::<ZcosmicWorkspaceManagerV1, _, _>(*wm_name, 1, qh, ());
                         state.workspace_manager = Some(workspace_manager);
                     }
                 }
