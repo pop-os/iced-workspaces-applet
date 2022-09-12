@@ -21,7 +21,7 @@ use crate::wayland_subscription::{workspaces, WorkspacesUpdate};
 pub fn run() -> iced::Result {
     let mut settings = Settings::default();
     settings.window.decorations = false;
-
+    settings.window.size = (1, 1);
     IcedWorkspacesApplet::run(settings)
 }
 
@@ -155,16 +155,22 @@ impl Application for IcedWorkspacesApplet {
             })
             .collect();
         let layout_section: Element<_> = match self.layout {
-            Layout::Row => row(buttons).width(Length::Fill).height(Length::Fill).into(),
+            Layout::Row => row(buttons)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .padding(0)
+                .into(),
             Layout::Column => column(buttons)
                 .width(Length::Fill)
                 .height(Length::Fill)
+                .padding(0)
                 .into(),
         };
 
         container(layout_section)
             .width(Length::Fill)
             .height(Length::Fill)
+            .padding(0)
             .into()
     }
 
