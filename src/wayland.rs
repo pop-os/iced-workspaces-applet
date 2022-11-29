@@ -1,28 +1,30 @@
-use crate::wayland_source::WaylandSource;
 use calloop::channel::*;
+use cosmic_panel_config::CosmicPanelOuput;
 use cosmic_protocols::workspace::v1::client::{
     zcosmic_workspace_group_handle_v1::{self, ZcosmicWorkspaceGroupHandleV1},
     zcosmic_workspace_handle_v1::{self, ZcosmicWorkspaceHandleV1},
     zcosmic_workspace_manager_v1::{self, ZcosmicWorkspaceManagerV1},
 };
 use futures::{channel::mpsc, executor::block_on, SinkExt};
-use std::{env, os::unix::net::UnixStream, path::PathBuf, time::Duration};
+use sctk::event_loop::WaylandSource;
+use std::{env, os::unix::net::UnixStream, path::PathBuf, str::FromStr, time::Duration};
+use wayland_backend::client::ObjectId;
 use wayland_client::{
     event_created_child,
     protocol::{
         wl_output::{self, WlOutput},
         wl_registry::{self, WlRegistry},
     },
-    ConnectError,
+    ConnectError, Proxy,
 };
 use wayland_client::{Connection, Dispatch, QueueHandle};
 
 #[derive(Debug, Clone)]
 pub enum WorkspaceEvent {
-    Activate(String),
+    Activate(ObjectId),
     Scroll(f64),
 }
-pub type WorkspaceList = Vec<(String, Option<zcosmic_workspace_handle_v1::State>)>;
+pub type WorkspaceList = Vec<(String, Option<zcosmic_workspace_handle_v1::State>, ObjectId)>;
 
 pub fn spawn_workspaces(tx: mpsc::Sender<WorkspaceList>) -> SyncSender<WorkspaceEvent> {
     let (workspaces_tx, workspaces_rx) = calloop::channel::sync_channel(100);
@@ -42,11 +44,9 @@ pub fn spawn_workspaces(tx: mpsc::Sender<WorkspaceList>) -> SyncSender<Workspace
         std::thread::spawn(move || {
             let output = std::env::var("COSMIC_PANEL_OUTPUT")
                 .ok()
-                .and_then(|size| match size {
-                    s if s.len() >= 6 && &s[..5] == "Name(" && s.chars().last() == Some(')') => {
-                        Some(s[5..s.len() - 1].to_string())
-                    }
-                    _ => Some("".to_string()),
+                .map(|output_str| match CosmicPanelOuput::from_str(&output_str) {
+                    Ok(CosmicPanelOuput::Name(name)) => name,
+                    _ => "".to_string(),
                 })
                 .unwrap_or_default();
             let mut event_loop = calloop::EventLoop::<State>::try_new().unwrap();
@@ -76,11 +76,9 @@ pub fn spawn_workspaces(tx: mpsc::Sender<WorkspaceList>) -> SyncSender<Workspace
             loop_handle
                 .insert_source(workspaces_rx, |e, _, state| match e {
                     Event::Msg(WorkspaceEvent::Activate(id)) => {
-                        if let Some(w) = state
-                            .workspace_groups
-                            .iter()
-                            .find_map(|g| g.workspaces.iter().find(|w| w.name == id))
-                        {
+                        if let Some(w) = state.workspace_groups.iter().find_map(|g| {
+                            g.workspaces.iter().find(|w| w.workspace_handle.id() == id)
+                        }) {
                             w.workspace_handle.activate();
                             state.workspace_manager.as_ref().unwrap().commit();
                         }
@@ -156,7 +154,9 @@ pub struct State {
 
 impl State {
     // XXX
-    pub fn workspace_list(&self) -> Vec<(String, Option<zcosmic_workspace_handle_v1::State>)> {
+    pub fn workspace_list(
+        &self,
+    ) -> Vec<(String, Option<zcosmic_workspace_handle_v1::State>, ObjectId)> {
         self.workspace_groups
             .iter()
             .filter_map(|g| {
@@ -177,6 +177,7 @@ impl State {
                                 }
                                 _ => None,
                             },
+                            w.workspace_handle.id(),
                         )
                     }))
                 } else {
@@ -269,6 +270,7 @@ impl Dispatch<ZcosmicWorkspaceManagerV1, ()> for State {
                         w1.coordinates
                             .iter()
                             .zip(w2.coordinates.iter())
+                            .rev()
                             .skip_while(|(coord1, coord2)| coord1 == coord2)
                             .next()
                             .map(|(coord1, coord2)| coord1.cmp(coord2))

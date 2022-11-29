@@ -5,18 +5,17 @@ authors = ["Ashley Wulber <ashley@system76.com>"]
 edition = "2021"
 
 [dependencies]
-iced = { git = "https://github.com/wash2/iced", features = ["wgpu", "default_system_font", "palette", "svg", "image", "tokio"], branch = "fix_window_resize" }
-iced_native = { git = "https://github.com/wash2/iced", branch = "fix_window_resize"  }
-iced_style = { git = "https://github.com/wash2/iced", branch = "fix_window_resize"  }
-adw-user-colors-lib = { git = "https://github.com/pop-os/user-color-editor" }
+libcosmic = { git = "https://github.com/pop-os/libcosmic/", branch = "sctk-cosmic-design-system", default-features = false, features = ["wayland", "applet"] }
+cosmic-panel-config = {git = "https://github.com/pop-os/cosmic-panel", default-features = false }
+iced_sctk = { git = "https://github.com/pop-os/iced-sctk" }
+sctk = { package = "smithay-client-toolkit", git = "https://github.com/Smithay/client-toolkit" }
 # iced = { path = "../iced", features = ["wgpu", "default_system_font", "palette", "svg", "image", "tokio"]}
 # iced_native = { path = "../iced/native" }
 # iced_style = { path = "../iced/style" }
 # adw-user-colors-lib = { path = "../user-color-editor/adw-user-colors-lib" }
-cosmic-panel-config = { git = "https://github.com/pop-os/cosmic-panel" }
 cosmic-protocols = { git = "https://github.com/pop-os/cosmic-protocols", default-features = false, features = ["client"] }
-wayland-backend = { git = "https://github.com/Smithay/wayland-rs", version = "0.1.0-beta.9"}
-wayland-client = { git = "https://github.com/Smithay/wayland-rs", version = "0.30.0-beta.9"}
+wayland-backend = { git = "https://github.com/Smithay/wayland-rs", version = "0.1.0-beta.13"}
+wayland-client = { git = "https://github.com/Smithay/wayland-rs", version = "0.30.0-beta.13"}
 calloop = "0.10.1"
 nix = "0.25.0"
 log = "0.4"
@@ -31,8 +30,8 @@ i18n-embed-fl = "0.6.4"
 rust-embed = "6.3.0"
 
 [patch.crates-io]
-wayland-protocols = { git = "https://github.com/smithay/wayland-rs", version = "0.30.0-beta.9"}
-wayland-sys = { git = "https://github.com/smithay/wayland-rs", version = "0.30.0-beta.9"}
-wayland-backend = { git = "https://github.com/smithay/wayland-rs", version = "0.1.0-beta.9"}
-wayland-scanner = { git = "https://github.com/smithay/wayland-rs", version = "0.30.0-beta.9"}
-wayland-client = { git = "https://github.com/smithay/wayland-rs", version = "0.30.0-beta.9"}
+wayland-protocols = { git = "https://github.com/smithay/wayland-rs", version = "0.30.0-beta.13"}
+wayland-sys = { git = "https://github.com/smithay/wayland-rs", version = "0.30.0-beta.13"}
+wayland-backend = { git = "https://github.com/smithay/wayland-rs", version = "0.1.0-beta.13"}
+wayland-scanner = { git = "https://github.com/smithay/wayland-rs", version = "0.30.0-beta.13"}
+wayland-client = { git = "https://github.com/smithay/wayland-rs", version = "0.30.0-beta.13"}

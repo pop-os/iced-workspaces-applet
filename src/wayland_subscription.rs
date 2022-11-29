@@ -12,8 +12,8 @@ pub enum WorkspacesUpdate {
 
 pub fn workspaces<I: 'static + Hash + Copy + Send + Sync>(
     id: I,
-) -> iced::Subscription<(I, WorkspacesUpdate)> {
-    use iced::subscription;
+) -> cosmic::iced::Subscription<(I, WorkspacesUpdate)> {
+    use cosmic::iced::subscription;
 
     subscription::unfold(id, State::Ready, move |state| _workspaces(id, state))
 }
@@ -40,7 +40,7 @@ async fn _workspaces<I: Copy>(id: I, state: State) -> (Option<(I, WorkspacesUpda
                 (Some((id, WorkspacesUpdate::Errored)), State::Error)
             }
         }
-        State::Error => iced::futures::future::pending().await,
+        State::Error => cosmic::iced::futures::future::pending().await,
     }
 }
 

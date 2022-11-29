@@ -3,7 +3,6 @@ mod components;
 mod config;
 mod localize;
 mod wayland;
-mod wayland_source;
 mod wayland_subscription;
 
 use config::APP_ID;
@@ -16,7 +15,7 @@ use crate::{
     config::{PROFILE, VERSION},
 };
 
-fn main() -> iced::Result {
+fn main() -> cosmic::iced::Result {
     // Initialize logger
     pretty_env_logger::init();
     info!("Iced Workspaces Applet ({})", APP_ID);

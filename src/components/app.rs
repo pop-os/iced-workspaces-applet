@@ -1,27 +1,37 @@
 use std::{cmp::Ordering, env};
 
-use adw_user_colors_lib::notify::*;
 use calloop::channel::SyncSender;
+use cosmic::iced::alignment::{Horizontal, Vertical};
+use cosmic::iced::mouse::{self, ScrollDelta};
+use cosmic::iced::widget::{column, container, row, text};
+use cosmic::iced::{
+    executor, subscription, widget::button, window, Application, Command, Event::Mouse, Length,
+    Settings, Subscription,
+};
+use cosmic::iced_style::application::{self, Appearance};
+use cosmic::theme::Button;
+use cosmic::{Element, Theme};
 use cosmic_panel_config::PanelAnchor;
 use cosmic_protocols::workspace::v1::client::zcosmic_workspace_handle_v1;
-use iced::alignment::{Horizontal, Vertical};
-use iced::mouse::{self, ScrollDelta};
-use iced::theme::palette::Extended;
-use iced::theme::{self, Palette};
-use iced::widget::{button, column, container, row, text};
-use iced::{
-    executor, subscription, window, Application, Command, Element, Event::Mouse, Length, Settings,
-    Subscription, Theme,
-};
+use iced_sctk::application::SurfaceIdWrapper;
+use iced_sctk::command::platform_specific::wayland::window::SctkWindowSettings;
+use iced_sctk::settings::InitialSurface;
+use iced_sctk::{commands, Color};
+use wayland_backend::client::ObjectId;
 
 use crate::config;
 use crate::wayland::{WorkspaceEvent, WorkspaceList};
 use crate::wayland_subscription::{workspaces, WorkspacesUpdate};
 
-pub fn run() -> iced::Result {
+pub fn run() -> cosmic::iced::Result {
     let mut settings = Settings::default();
-    settings.window.decorations = false;
-    settings.window.size = (1, 1);
+    settings.initial_surface = InitialSurface::XdgWindow(SctkWindowSettings {
+        iced_settings: cosmic::iced_native::window::Settings {
+            size: (32, 32),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
     IcedWorkspacesApplet::run(settings)
 }
 
@@ -40,9 +50,8 @@ struct IcedWorkspacesApplet {
 
 #[derive(Debug, Clone)]
 enum Message {
-    PaletteChanged(Palette),
     WorkspaceUpdate(WorkspacesUpdate),
-    WorkspacePressed(String),
+    WorkspacePressed(ObjectId),
     WheelScrolled(ScrollDelta),
     Errored,
 }
@@ -65,7 +74,7 @@ impl Application for IcedWorkspacesApplet {
                     PanelAnchor::Top | PanelAnchor::Bottom => Layout::Row,
                 },
                 theme: Default::default(),
-                workspaces: Default::default(),
+                workspaces: Vec::new(),
                 workspace_tx: Default::default(),
             },
             Command::none(),
@@ -78,12 +87,6 @@ impl Application for IcedWorkspacesApplet {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::PaletteChanged(palette) => {
-                self.theme = Theme::Custom {
-                    palette,
-                    extended: Extended::generate(palette),
-                }
-            }
             Message::WorkspaceUpdate(msg) => match msg {
                 WorkspacesUpdate::Workspaces(mut list) => {
                     list.retain(|w| {
@@ -95,12 +98,12 @@ impl Application for IcedWorkspacesApplet {
                         Ordering::Greater => Ordering::Greater,
                     });
                     self.workspaces = list;
-                    let unit = 28;
+                    let unit = 32;
                     let (w, h) = match self.layout {
                         Layout::Row => (unit * self.workspaces.len() as u32, unit),
                         Layout::Column => (unit, unit * self.workspaces.len() as u32),
                     };
-                    return window::resize(w, h);
+                    return commands::window::resize_window(window::Id::new(0), w, h);
                 }
                 WorkspacesUpdate::Started(tx) => {
                     self.workspace_tx.replace(tx);
@@ -109,9 +112,9 @@ impl Application for IcedWorkspacesApplet {
                     // TODO
                 }
             },
-            Message::WorkspacePressed(name) => {
+            Message::WorkspacePressed(id) => {
                 if let Some(tx) = self.workspace_tx.as_mut() {
-                    let _ = tx.try_send(WorkspaceEvent::Activate(name));
+                    let _ = tx.try_send(WorkspaceEvent::Activate(id));
                 }
             }
             Message::WheelScrolled(delta) => {
@@ -128,7 +131,7 @@ impl Application for IcedWorkspacesApplet {
         Command::none()
     }
 
-    fn view(&self) -> Element<Message> {
+    fn view(&self, _id: SurfaceIdWrapper) -> Element<Message> {
         let buttons = self
             .workspaces
             .iter()
@@ -142,16 +145,17 @@ impl Application for IcedWorkspacesApplet {
                 )
                 .width(Length::Fill)
                 .height(Length::Fill)
-                .on_press(Message::WorkspacePressed(w.0.clone()))
+                .on_press(Message::WorkspacePressed(w.2.clone()))
                 .padding(0);
-                match w.1 {
-                    Some(zcosmic_workspace_handle_v1::State::Active) => Some(btn.into()),
-                    Some(zcosmic_workspace_handle_v1::State::Urgent) => {
-                        Some(btn.style(theme::Button::Destructive).into())
-                    }
-                    None => Some(btn.style(theme::Button::Secondary).into()),
-                    _ => None,
-                }
+                Some(
+                    btn.style(match w.1 {
+                        Some(zcosmic_workspace_handle_v1::State::Active) => Button::Primary,
+                        Some(zcosmic_workspace_handle_v1::State::Urgent) => Button::Destructive,
+                        None => Button::Secondary,
+                        _ => return None,
+                    })
+                    .into(),
+                )
             })
             .collect();
         let layout_section: Element<_> = match self.layout {
@@ -177,10 +181,6 @@ impl Application for IcedWorkspacesApplet {
     fn subscription(&self) -> Subscription<Message> {
         Subscription::batch(
             vec![
-                theme(0).map(|(_, theme_update)| match theme_update {
-                    ThemeUpdate::Palette(palette) => Message::PaletteChanged(palette),
-                    ThemeUpdate::Errored => Message::Errored,
-                }),
                 workspaces(0).map(|(_, msg)| Message::WorkspaceUpdate(msg)),
                 subscription::events_with(|e, _| match e {
                     Mouse(mouse::Event::WheelScrolled { delta }) => {
@@ -195,5 +195,16 @@ impl Application for IcedWorkspacesApplet {
 
     fn theme(&self) -> Theme {
         self.theme
+    }
+
+    fn close_requested(&self, _id: iced_sctk::application::SurfaceIdWrapper) -> Self::Message {
+        unimplemented!()
+    }
+
+    fn style(&self) -> <Self::Theme as application::StyleSheet>::Style {
+        <Self::Theme as application::StyleSheet>::Style::Custom(|theme| Appearance {
+            background_color: Color::from_rgba(0.0, 0.0, 0.0, 0.0),
+            text_color: theme.cosmic().on_bg_color().into(),
+        })
     }
 }
